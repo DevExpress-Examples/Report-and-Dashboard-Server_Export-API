@@ -8,10 +8,39 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace exportApi
 {
+
+    public interface IExportService
+    {
+
+    }
+    public class ExportService : IExportService
+    {
+        private readonly HttpClient _httpClient;
+        private readonly string _remoteServiceBaseUrl;
+
+        public ExportService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
+        public async Task<object> GetCatalogItems(int page, int take,
+                                                   int? brand, int? type)
+        {
+
+
+            var responseString = await _httpClient.GetStringAsync("uri");
+
+            var catalog = JsonConvert.DeserializeObject<object>(responseString);
+            return catalog;
+        }
+    }
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -31,6 +60,8 @@ namespace exportApi
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddHttpClient<IExportService, ExportService>()
+                             .SetHandlerLifetime(TimeSpan.FromSeconds(30));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
