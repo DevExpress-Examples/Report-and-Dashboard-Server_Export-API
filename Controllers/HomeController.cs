@@ -23,10 +23,10 @@ namespace exportApi.Controllers
     public class HomeController : Controller
     {
         //NOTE: https://danieldonbavand.com/httpclientfactory-net-core-2-1/ 
-        private readonly IHttpClientFactory _httpClientFactory;
-        public HomeController(IHttpClientFactory httpClientFactory)
+        private readonly ExportService exportService;
+        public HomeController(ExportService exportService)
         {
-            _httpClientFactory = httpClientFactory;
+            this.exportService = exportService;
         }
 
         const string ServerAddress = "http://localhost:8192/";
@@ -37,8 +37,12 @@ namespace exportApi.Controllers
 
         public async Task<FileStreamResult> DownloadReport()
         {
-            var httpClient = _httpClientFactory.CreateClient();
-            // var httpClient = new HttpClient();
+            // var response = await _boardApiClient.Client;
+
+            var sd = exportService.Client;
+
+            //var httpClient = _httpClientFactory.CreateClient();
+             var httpClient = new HttpClient();
 
             string statusPath = $"{ServerAddress}{ExportDocumentStatus}";
             var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);

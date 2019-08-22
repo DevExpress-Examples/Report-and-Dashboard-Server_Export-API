@@ -20,14 +20,17 @@ namespace exportApi
     {
 
     }
-    public class ExportService : IExportService
+    public class ExportService 
     {
+        public HttpClient Client { get; }
+
         private readonly HttpClient _httpClient;
         private readonly string _remoteServiceBaseUrl;
 
         public ExportService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+            Client = httpClient;
         }
 
         public async Task<object> GetCatalogItems(int page, int take,
@@ -60,8 +63,11 @@ namespace exportApi
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddHttpClient<IExportService, ExportService>()
-                             .SetHandlerLifetime(TimeSpan.FromSeconds(30));
+            services.AddHttpClient< ExportService>();
+         
+
+            // services.AddHttpClient<IExportService, ExportService>()
+            //                  .SetHandlerLifetime(TimeSpan.FromSeconds(30));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
