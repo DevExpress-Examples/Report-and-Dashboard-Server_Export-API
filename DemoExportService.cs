@@ -17,7 +17,7 @@ namespace ExportApiDemo {
         const int DemoReportId = 8;
         const int DemoDashboardId = 9;
         const int DemoJobResultId = 32;
-        string ExportDocumentStatus(string exportId) => $"api/documents/{exportId}/export";
+        string ExportDocumentStatusPath(string exportId) => $"api/documents/{exportId}/export";
         string DownloadDocumentPath(string exportId) => $"api/documents/{exportId}/export/download";
 
         public DemoExportService(HttpClient httpClient) {
@@ -25,7 +25,7 @@ namespace ExportApiDemo {
             this.httpClient = httpClient;
         }
 
-        async Task<ExportedDocumentContent> IExportService.ExportReport() {
+        public async Task<ExportedDocumentContent> ExportReport() {
             await Authorize(httpClient);
 
             var jsonString = JsonConvert.SerializeObject(GetPdfExportModel(DemoReportId));
@@ -36,7 +36,7 @@ namespace ExportApiDemo {
             string exportIdJson = await startExportResponse.Content.ReadAsStringAsync();
             var exportReportModel = JsonConvert.DeserializeObject<StartExportModel>(exportIdJson);
 
-            string statusPath = $"{ServerAddress}{ExportDocumentStatus(exportReportModel.exportId)}";
+            string statusPath = $"{ServerAddress}{ExportDocumentStatusPath(exportReportModel.exportId)}";
             TaskStatus status = TaskStatus.InProgress;
 
             while(status != TaskStatus.Complete) {
@@ -52,7 +52,7 @@ namespace ExportApiDemo {
             return new ExportedDocumentContent(stream, "application/pdf", "report.pdf");
         }
 
-        async Task<ExportedDocumentContent> IExportService.ExportDashboard() {
+        public async Task<ExportedDocumentContent> ExportDashboard() {
             await Authorize(httpClient);
 
             var jsonString = JsonConvert.SerializeObject(GetPdfExportModel(DemoDashboardId));
@@ -63,7 +63,7 @@ namespace ExportApiDemo {
             return new ExportedDocumentContent(stream, "application/pdf", "dashboard.pdf");
         }
 
-        async Task<ExportedDocumentContent> IExportService.GetScheduledJobResult() {
+        public async Task<ExportedDocumentContent> GetScheduledJobResult() {
             await Authorize(httpClient);
 
             var jsonString = JsonConvert.SerializeObject(GetPdfExportModel(DemoJobResultId));
@@ -82,8 +82,8 @@ namespace ExportApiDemo {
         static async Task Authorize(HttpClient httpClient) {
             string demoAccountUserName = "admin";
             string demoAccountPassword = "admin";
-            var authRequestBodu = $"grant_type=password&username={demoAccountUserName}&password={demoAccountPassword}";
-            var authResponse = await httpClient.PostAsync(ServerAddress + "oauth/token", new StringContent(authRequestBodu));
+            var authRequestBody = $"grant_type=password&username={demoAccountUserName}&password={demoAccountPassword}";
+            var authResponse = await httpClient.PostAsync(ServerAddress + "oauth/token", new StringContent(authRequestBody));
             authResponse.EnsureSuccessStatusCode();
             var token = JsonConvert.DeserializeObject<Token>(await authResponse.Content.ReadAsStringAsync()).AuthToken;
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
