@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using ExportApi.Models;
+using ExportApiDemo.Models;
 
-namespace ExportApi.Controllers
+namespace ExportApiDemo.Controllers
 {
     public class HomeController : Controller
     {

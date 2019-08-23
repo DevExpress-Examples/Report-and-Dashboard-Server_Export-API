@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using ExportApi.Models;
+using ExportApiDemo.Models;
 
-namespace ExportApi
+namespace ExportApiDemo
 {
     public interface IExportService
     {

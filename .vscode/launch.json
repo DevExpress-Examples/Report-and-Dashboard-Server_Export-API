@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/ExportApi.dll",
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/ExportApiDemo.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

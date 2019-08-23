@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
-namespace ExportApi
+namespace ExportApiDemo
 {
     public class Program
     {

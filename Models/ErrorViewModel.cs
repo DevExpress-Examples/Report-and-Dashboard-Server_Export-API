@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Newtonsoft.Json;
 
-namespace ExportApi.Models
+namespace ExportApiDemo.Models
 {
     public class ErrorViewModel
     {
