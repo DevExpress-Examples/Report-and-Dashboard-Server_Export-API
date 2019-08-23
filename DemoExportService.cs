@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.IO;
-using exportApi.Models;
+using ExportApi.Models;
 using System.Text;
 using System.Net.Http.Headers;
-using TaskStatus = exportApi.Models.TaskStatus;
+using TaskStatus = ExportApi.Models.TaskStatus;
 using System.Threading;
 
-namespace exportApi
+namespace ExportApi
 {   
     public class DemoExportService : IExportService
     {
