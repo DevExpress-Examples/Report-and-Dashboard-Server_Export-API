@@ -20,7 +20,6 @@ namespace exportApi.Controllers
 {
     public class HomeController : Controller
     {
-        //NOTE: https://danieldonbavand.com/httpclientfactory-net-core-2-1/  -> more detailed description https://www.stevejgordon.co.uk/introduction-to-httpclientfactory-aspnetcore
         readonly IExportApiClient exportServiceClient;
 
         public HomeController(IExportApiClient exportServiceClient)
@@ -53,7 +52,7 @@ namespace exportApi.Controllers
 
         public async Task<FileStreamResult> ExportReport()
         {
-            
+            //exportServiceClient.ExportReport();
 
             // var sd = await exportServiceClient.GetRandomActivity();
             //var httpClient = _httpClientFactory.CreateClient();
@@ -112,24 +111,11 @@ namespace exportApi.Controllers
 
         public async Task<FileStreamResult> GetScheduledJobResult()
         {
-            var httpClient = new HttpClient();
-            string token = await GetAuthToken(httpClient);
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            ExportModel exportModel = new ExportModel { Id = DemoJobResultId, ExportOptions = new ExportOptions() { ExportFormat = "pdf" } };
-            var jsonString = JsonConvert.SerializeObject(exportModel);
-            var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
-
             Request.Headers.Add("Content-Type", "application/json");
-            var jobResultPath = ServerAddress + "api/jobs/results";
-            HttpResponseMessage downloadResponse = await httpClient.PostAsync(jobResultPath, content);
-            downloadResponse.EnsureSuccessStatusCode();
-            Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
-
-            Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = "jobResult.pdf", Inline = false }.ToString();
-            return File(stream, "application/pdf");
+            var content = await exportServiceClient.GetJobResult();
+            Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = content.FileName, Inline = false }.ToString();
+            return File(content.Content, content.ContentType);
         }
-
 
         public IActionResult Index()
         {
