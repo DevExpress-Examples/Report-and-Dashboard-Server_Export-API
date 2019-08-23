@@ -1,12 +1,9 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
-namespace ExportApiDemo
-{
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
+namespace ExportApiDemo {
+    public class Program {
+        public static void Main(string[] args) {
             CreateWebHostBuilder(args).Build().Run();
         }
 
