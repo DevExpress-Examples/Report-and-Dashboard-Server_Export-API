@@ -15,11 +15,11 @@ namespace exportApi
     {
         Task<ExportedDocumentContent> ExportReport();
         Task<ExportedDocumentContent> ExportDashboard();
-        Task<ExportedDocumentContent> GetJobResult();
+        Task<ExportedDocumentContent> GetScheduledJobResult();
     }
 
-    //NOTE: https://danieldonbavand.com/httpclientfactory-net-core-2-1/  -> more detailed description https://www.stevejgordon.co.uk/introduction-to-httpclientfactory-aspnetcore
-    public class ExportService : IExportService
+    
+    public class DemoExportService : IExportService
     {
         readonly HttpClient httpClient;
 
@@ -33,7 +33,7 @@ namespace exportApi
         string ExportDocumentStatus(string exportId) => $"api/documents/{exportId}/export";
         string DownloadDocumentPath(string exportId) => $"api/documents/{exportId}/export/download";
 
-        public ExportService(HttpClient httpClient)
+        public DemoExportService(HttpClient httpClient)
         {
             httpClient.BaseAddress = new Uri(ServerAddress);
             this.httpClient = httpClient;
@@ -80,7 +80,7 @@ namespace exportApi
             return new ExportedDocumentContent(stream, "application/pdf", "dashboard.pdf");
         }
 
-        async Task<ExportedDocumentContent> IExportService.GetJobResult()
+        async Task<ExportedDocumentContent> IExportService.GetScheduledJobResult()
         {
             await Authorize(httpClient);
 

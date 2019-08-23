@@ -29,7 +29,7 @@ namespace exportApi.Controllers
 
         public async Task<FileStreamResult> GetScheduledJobResult()
         {
-            ExportedDocumentContent content = await demoExportService.GetJobResult();
+            ExportedDocumentContent content = await demoExportService.GetScheduledJobResult();
             return File(content.Content, content.ContentType, content.FileName);
         }
 
