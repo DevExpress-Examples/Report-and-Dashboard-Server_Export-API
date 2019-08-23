@@ -16,27 +16,6 @@ using System.Net.Http.Headers;
 
 namespace exportApi.Controllers
 {
-    public class ExportModel
-    {
-        public int Id { get; set; }
-        public ExportOptions ExportOptions { get; set; }
-    }
-
-    public enum TaskStatus
-    {
-        Fault = 0,
-        InProgress = 1,
-        Complete = 2
-    }
-    
-    public class ExportOptions
-    {
-        public string ExportFormat { get; set; }
-    }
-    public class AuthData {
-        public string access_token { get; set; }
-    }
-
     public class HomeController : Controller
     {
         //NOTE: https://danieldonbavand.com/httpclientfactory-net-core-2-1/  -> more detailed description https://www.stevejgordon.co.uk/introduction-to-httpclientfactory-aspnetcore
@@ -98,7 +77,6 @@ namespace exportApi.Controllers
             string token = await GetAuthToken(httpClient);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-
             ExportModel exportModel = new ExportModel { Id = 9, ExportOptions = new ExportOptions() { ExportFormat = "pdf" } };
             var jsonString = JsonConvert.SerializeObject(exportModel);
             var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
@@ -109,10 +87,8 @@ namespace exportApi.Controllers
             downloadResponse.EnsureSuccessStatusCode();
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
 
-
             
             Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = "dashboard.pdf", Inline = false }.ToString();
-
             return File(stream, "image/png");
         }
 
@@ -152,11 +128,5 @@ namespace exportApi.Controllers
         {
             return View();
         }
-
-        // [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        // public IActionResult Error()
-        // {
-        //     return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        // }
     }
 }

@@ -51,4 +51,29 @@ namespace exportApi
             return catalog;
         }
     }
+
+
+    public class ExportModel
+    {
+        public int Id { get; set; }
+        public ExportOptions ExportOptions { get; set; }
+    }
+
+    public enum TaskStatus
+    {
+        Fault = 0,
+        InProgress = 1,
+        Complete = 2
+    }
+
+    public class ExportOptions
+    {
+        public string ExportFormat { get; set; }
+    }
+    public class AuthData
+    {
+        public string access_token { get; set; }
+    }
+
+
 }
