@@ -91,28 +91,16 @@ namespace exportApi.Controllers
 
         public async Task<FileStreamResult> ExportDashboard()
         {
-            var httpClient = new HttpClient();
-            string token = await GetAuthToken(httpClient);
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            ExportModel exportModel = new ExportModel { Id = DemoDashboardId, ExportOptions = new ExportOptions() { ExportFormat = "pdf" } };
-            var jsonString = JsonConvert.SerializeObject(exportModel);
-            var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
             Request.Headers.Add("Content-Type", "application/json");
-
-            var downloadDashboardPath = ServerAddress + "api/dashboards/export";
-            HttpResponseMessage downloadResponse = await httpClient.PostAsync(downloadDashboardPath, content);
-            downloadResponse.EnsureSuccessStatusCode();
-            Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
-
-            Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = "dashboard.pdf", Inline = false }.ToString();
-            return File(stream, "image/png");
+            ExportedDocumentContent content = await exportServiceClient.ExportDashboard();
+            Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = content.FileName, Inline = false }.ToString();
+            return File(content.Content, content.ContentType);
         }
 
         public async Task<FileStreamResult> GetScheduledJobResult()
         {
             Request.Headers.Add("Content-Type", "application/json");
-            var content = await exportServiceClient.GetJobResult();
+            ExportedDocumentContent content = await exportServiceClient.GetJobResult();
             Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = content.FileName, Inline = false }.ToString();
             return File(content.Content, content.ContentType);
         }

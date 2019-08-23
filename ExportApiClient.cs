@@ -42,17 +42,11 @@ namespace exportApi
         string ExportDocumentStatus(string exportId) => $"api/documents/{exportId}/export";
         string DownloadDocumentPath(string exportId) => $"api/documents/{exportId}/export/download";
 
-
-
         public ExportApiClient(HttpClient httpClient)
         {
             httpClient.BaseAddress = new Uri(ServerAddress);
-            // httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-            // httpClient. Add("Content-type", "application/json");
             this.httpClient = httpClient;
         }
-
-  
 
         async Task<ExportedDocumentContent> IExportApiClient.ExportReport()
         {
@@ -61,23 +55,25 @@ namespace exportApi
 
         async Task<ExportedDocumentContent> IExportApiClient.ExportDashboard()
         {
-            throw new NotImplementedException();
+            await Authorize(httpClient);
+            var jsonString = JsonConvert.SerializeObject(GetPdfExportModel(DemoDashboardId));
+            var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            HttpResponseMessage downloadResponse = await httpClient.PostAsync(ServerAddress + "api/dashboards/export", content);
+            downloadResponse.EnsureSuccessStatusCode();
+            Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
+            return new ExportedDocumentContent(stream, "application/pdf", "dashboard.pdf");
         }
 
         async Task<ExportedDocumentContent> IExportApiClient.GetJobResult()
         {
-            await GetAuthToken(httpClient); // TODO: rename
+            await Authorize(httpClient);
 
             var jsonString = JsonConvert.SerializeObject(GetPdfExportModel(DemoJobResultId));
             var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
-            // Request.Headers.Add("Content-Type", "application/json");
             HttpResponseMessage downloadResponse = await httpClient.PostAsync(ServerAddress + "api/jobs/results", content);
             downloadResponse.EnsureSuccessStatusCode();
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
-            // Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = "jobResult.pdf", Inline = false }.ToString();
             return new ExportedDocumentContent(stream, "application/pdf", "jobResult.pdf");
-
-            // return File(stream, "application/pdf");
         }
 
         static ExportModel GetPdfExportModel(int entityId)
@@ -85,18 +81,16 @@ namespace exportApi
             return new ExportModel { Id = entityId, ExportOptions = new ExportOptions() { ExportFormat = "pdf" } };
         }
 
-        static async Task<string> GetAuthToken(HttpClient httpClient)
+        static async Task<string> Authorize(HttpClient httpClient)
         {
-            string userName = "admin";
-            string password = "admin";
-            var body = $"grant_type=password&username={userName}&password={password}";
-            var tokenResponse = await httpClient.PostAsync(ServerAddress + "oauth/token", new StringContent(body));
-            tokenResponse.EnsureSuccessStatusCode();
-            var authData = await tokenResponse.Content.ReadAsStringAsync();
-            var token = JsonConvert.DeserializeObject<AuthData>(authData);
-
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.access_token);
-            return token.access_token;
+            string demoAccountUserName = "admin";
+            string demoAccountPassword = "admin";
+            var authRequestBodu = $"grant_type=password&username={demoAccountUserName}&password={demoAccountPassword}";
+            var authResponse = await httpClient.PostAsync(ServerAddress + "oauth/token", new StringContent(authRequestBodu));
+            authResponse.EnsureSuccessStatusCode();
+            var token = JsonConvert.DeserializeObject<AuthData>(await authResponse.Content.ReadAsStringAsync()).access_token;
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            return token;
         }
     }
 }
