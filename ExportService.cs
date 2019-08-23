@@ -1,34 +1,25 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Http;
-using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.IO;
 using exportApi.Models;
 using System.Text;
 using System.Net.Http.Headers;
+using TaskStatus = exportApi.Models.TaskStatus;
+using System.Threading;
 
 namespace exportApi
 {
-    public interface IExportApiClient
+    public interface IExportService
     {
         Task<ExportedDocumentContent> ExportReport();
         Task<ExportedDocumentContent> ExportDashboard();
         Task<ExportedDocumentContent> GetJobResult();
     }
 
-
     //NOTE: https://danieldonbavand.com/httpclientfactory-net-core-2-1/  -> more detailed description https://www.stevejgordon.co.uk/introduction-to-httpclientfactory-aspnetcore
-    public class ExportApiClient : IExportApiClient
+    public class ExportService : IExportService
     {
         readonly HttpClient httpClient;
 
@@ -42,20 +33,45 @@ namespace exportApi
         string ExportDocumentStatus(string exportId) => $"api/documents/{exportId}/export";
         string DownloadDocumentPath(string exportId) => $"api/documents/{exportId}/export/download";
 
-        public ExportApiClient(HttpClient httpClient)
+        public ExportService(HttpClient httpClient)
         {
             httpClient.BaseAddress = new Uri(ServerAddress);
             this.httpClient = httpClient;
         }
 
-        async Task<ExportedDocumentContent> IExportApiClient.ExportReport()
-        {
-            throw new NotImplementedException();
-        }
-
-        async Task<ExportedDocumentContent> IExportApiClient.ExportDashboard()
+        async Task<ExportedDocumentContent> IExportService.ExportReport()
         {
             await Authorize(httpClient);
+
+            var jsonString = JsonConvert.SerializeObject(GetPdfExportModel(DemoReportId));
+            var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage startExportResponse = await httpClient.PostAsync(ServerAddress + "api/reports/export", content);
+            startExportResponse.EnsureSuccessStatusCode();
+            string exportIdJson = await startExportResponse.Content.ReadAsStringAsync();
+            var exportReportModel = JsonConvert.DeserializeObject<StartExportModel>(exportIdJson);
+
+            string statusPath = $"{ServerAddress}{ExportDocumentStatus(exportReportModel.exportId)}";
+            TaskStatus status = TaskStatus.InProgress;
+
+            while (status != TaskStatus.Complete)
+            {
+                Thread.Sleep(500);
+                HttpResponseMessage exportStatusResponse = await httpClient.GetAsync(statusPath);
+                status = JsonConvert.DeserializeObject<TaskStatus>(await exportStatusResponse.Content.ReadAsStringAsync());
+            }
+
+            HttpResponseMessage downloadResponse = await httpClient.GetAsync(ServerAddress + DownloadDocumentPath(exportReportModel.exportId));
+            downloadResponse.EnsureSuccessStatusCode();
+
+            Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
+            return new ExportedDocumentContent(stream, "application/pdf", "report.pdf");
+        }
+
+        async Task<ExportedDocumentContent> IExportService.ExportDashboard()
+        {
+            await Authorize(httpClient);
+
             var jsonString = JsonConvert.SerializeObject(GetPdfExportModel(DemoDashboardId));
             var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
             HttpResponseMessage downloadResponse = await httpClient.PostAsync(ServerAddress + "api/dashboards/export", content);
@@ -64,12 +80,13 @@ namespace exportApi
             return new ExportedDocumentContent(stream, "application/pdf", "dashboard.pdf");
         }
 
-        async Task<ExportedDocumentContent> IExportApiClient.GetJobResult()
+        async Task<ExportedDocumentContent> IExportService.GetJobResult()
         {
             await Authorize(httpClient);
 
             var jsonString = JsonConvert.SerializeObject(GetPdfExportModel(DemoJobResultId));
             var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
             HttpResponseMessage downloadResponse = await httpClient.PostAsync(ServerAddress + "api/jobs/results", content);
             downloadResponse.EnsureSuccessStatusCode();
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
@@ -81,16 +98,15 @@ namespace exportApi
             return new ExportModel { Id = entityId, ExportOptions = new ExportOptions() { ExportFormat = "pdf" } };
         }
 
-        static async Task<string> Authorize(HttpClient httpClient)
+        static async Task Authorize(HttpClient httpClient)
         {
             string demoAccountUserName = "admin";
             string demoAccountPassword = "admin";
             var authRequestBodu = $"grant_type=password&username={demoAccountUserName}&password={demoAccountPassword}";
             var authResponse = await httpClient.PostAsync(ServerAddress + "oauth/token", new StringContent(authRequestBodu));
             authResponse.EnsureSuccessStatusCode();
-            var token = JsonConvert.DeserializeObject<AuthData>(await authResponse.Content.ReadAsStringAsync()).access_token;
+            var token = JsonConvert.DeserializeObject<Token>(await authResponse.Content.ReadAsStringAsync()).AuthToken;
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            return token;
         }
     }
 }

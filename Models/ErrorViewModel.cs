@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace exportApi.Models
 {
@@ -36,6 +37,7 @@ namespace exportApi.Models
     public class ExportModel
     {
         public int Id { get; set; }
+
         public ExportOptions ExportOptions { get; set; }
     }
 
@@ -51,8 +53,9 @@ namespace exportApi.Models
         public string ExportFormat { get; set; }
     }
 
-    public class AuthData
+    public class Token
     {
-        public string access_token { get; set; }
+        [JsonProperty("access_token")]
+        public string AuthToken { get; set; }
     }
 }

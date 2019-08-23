@@ -26,7 +26,7 @@ namespace exportApi
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-            services.AddHttpClient<IExportApiClient, ExportApiClient>()
+            services.AddHttpClient<IExportService, ExportService>()
                              //.SetHandlerLifetime(TimeSpan.FromSeconds(30))
                              ;
 
