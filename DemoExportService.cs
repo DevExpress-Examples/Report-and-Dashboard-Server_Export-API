@@ -35,7 +35,7 @@ namespace ExportApiDemo
             HttpContent content = await GetRequestContent(DemoReportId, "api/reports/export");
             var exportReportModel = JsonConvert.DeserializeObject<ReportExportInfo>(await content.ReadAsStringAsync());
             TaskStatus status = TaskStatus.InProgress;
-            
+
             while (status != TaskStatus.Complete)
             {
                 Thread.Sleep(500);
@@ -45,36 +45,25 @@ namespace ExportApiDemo
 
             HttpResponseMessage downloadResponse = await httpClient.GetAsync(DownloadDocumentPath(exportReportModel.ExportId));
             downloadResponse.EnsureSuccessStatusCode();
-
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
             return new ExportedDocumentContent(stream, "application/pdf", "report.pdf");
         }
 
-      
-
         public async Task<ExportedDocumentContent> ExportDashboard()
         {
             await Authorize(httpClient);
-
             return await GetExportedDocumentContent(DemoDashboardId,"api/dashboards/export", "dashboard.pdf");
         }
-        
 
         public async Task<ExportedDocumentContent> GetScheduledJobResult()
         {
             await Authorize(httpClient);
-
             return await GetExportedDocumentContent(DemoJobResultId, "api/jobs/results", "jobResult.pdf");
         }
 
 
-
         async Task<ExportedDocumentContent> GetExportedDocumentContent(int entityId, string exportUrl, string fileName)
         {
-            // var content = new StringContent(JsonConvert.SerializeObject(GetPdfExportModel(entityId)), Encoding.UTF8, "application/json");
-            // HttpResponseMessage response = await httpClient.PostAsync(exportUrl, content);
-            // response.EnsureSuccessStatusCode();
-
             var content = await GetRequestContent(entityId, exportUrl);
             return new ExportedDocumentContent(await content.ReadAsStreamAsync(), "application/pdf", fileName);
         }
