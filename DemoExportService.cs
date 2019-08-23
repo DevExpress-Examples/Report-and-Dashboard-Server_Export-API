@@ -34,9 +34,9 @@ namespace ExportApiDemo {
             HttpResponseMessage startExportResponse = await httpClient.PostAsync(ServerAddress + "api/reports/export", content);
             startExportResponse.EnsureSuccessStatusCode();
             string exportIdJson = await startExportResponse.Content.ReadAsStringAsync();
-            var exportReportModel = JsonConvert.DeserializeObject<StartExportModel>(exportIdJson);
+            var exportReportModel = JsonConvert.DeserializeObject<ReportExportInfo>(exportIdJson);
 
-            string statusPath = $"{ServerAddress}{ExportDocumentStatusPath(exportReportModel.exportId)}";
+            string statusPath = $"{ServerAddress}{ExportDocumentStatusPath(exportReportModel.ExportId)}";
             TaskStatus status = TaskStatus.InProgress;
 
             while(status != TaskStatus.Complete) {
@@ -45,7 +45,7 @@ namespace ExportApiDemo {
                 status = JsonConvert.DeserializeObject<TaskStatus>(await exportStatusResponse.Content.ReadAsStringAsync());
             }
 
-            HttpResponseMessage downloadResponse = await httpClient.GetAsync(ServerAddress + DownloadDocumentPath(exportReportModel.exportId));
+            HttpResponseMessage downloadResponse = await httpClient.GetAsync(ServerAddress + DownloadDocumentPath(exportReportModel.ExportId));
             downloadResponse.EnsureSuccessStatusCode();
 
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
@@ -75,8 +75,8 @@ namespace ExportApiDemo {
             return new ExportedDocumentContent(stream, "application/pdf", "jobResult.pdf");
         }
 
-        static ExportModel GetPdfExportModel(int entityId) {
-            return new ExportModel { Id = entityId, ExportOptions = new ExportOptions() { ExportFormat = "pdf" } };
+        static ExportRequestModel GetPdfExportModel(int entityId) {
+            return new ExportRequestModel { Id = entityId, ExportOptions = new ExportOptions() { ExportFormat = "pdf" } };
         }
 
         static async Task Authorize(HttpClient httpClient) {
