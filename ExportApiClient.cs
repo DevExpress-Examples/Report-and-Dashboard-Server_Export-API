@@ -12,6 +12,7 @@ using Microsoft.Extensions.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http;
 using Newtonsoft.Json;
+using System.IO;
 
 namespace exportApi
 {
@@ -41,8 +42,7 @@ namespace exportApi
             return JsonConvert.DeserializeObject<object>(null);
         }
 
-        public async Task<object> GetCatalogItems(int page, int take,
-                                                   int? brand, int? type)
+        public async Task<object> GetCatalogItems(int page, int take, int? brand, int? type)
         {
 
             var responseString = await _client.GetStringAsync("uri");
@@ -51,33 +51,4 @@ namespace exportApi
             return catalog;
         }
     }
-
-
-    public class StartExportModel {
-        public string exportId { get;set;}
-    }
-
-    public class ExportModel
-    {
-        public int Id { get; set; }
-        public ExportOptions ExportOptions { get; set; }
-    }
-
-    public enum TaskStatus
-    {
-        Fault = 0,
-        InProgress = 1,
-        Complete = 2
-    }
-
-    public class ExportOptions
-    {
-        public string ExportFormat { get; set; }
-    }
-    public class AuthData
-    {
-        public string access_token { get; set; }
-    }
-
-
 }

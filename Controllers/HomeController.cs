@@ -14,6 +14,7 @@ using System.Text;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Threading;
+using TaskStatus = exportApi.Models.TaskStatus;
 
 namespace exportApi.Controllers
 {
@@ -52,6 +53,8 @@ namespace exportApi.Controllers
 
         public async Task<FileStreamResult> ExportReport()
         {
+            
+
             // var sd = await exportServiceClient.GetRandomActivity();
             //var httpClient = _httpClientFactory.CreateClient();
             var httpClient = new HttpClient();
