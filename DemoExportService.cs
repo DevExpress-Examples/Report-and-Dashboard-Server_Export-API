@@ -10,15 +10,7 @@ using TaskStatus = exportApi.Models.TaskStatus;
 using System.Threading;
 
 namespace exportApi
-{
-    public interface IExportService
-    {
-        Task<ExportedDocumentContent> ExportReport();
-        Task<ExportedDocumentContent> ExportDashboard();
-        Task<ExportedDocumentContent> GetScheduledJobResult();
-    }
-
-    
+{   
     public class DemoExportService : IExportService
     {
         readonly HttpClient httpClient;

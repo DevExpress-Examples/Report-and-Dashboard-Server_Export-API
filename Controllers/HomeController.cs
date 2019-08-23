@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using exportApi.Models;
-using Microsoft.Net.Http.Headers;
-using System.Net.Mime;
 
 namespace exportApi.Controllers
 {
@@ -39,23 +37,3 @@ namespace exportApi.Controllers
         }
     }
 }
-
-
-
-
-
-
-// public async Task<TaskStatus> GetExportStatus(string exportId)
-// {
-//     var httpClient = new HttpClient();
-//     string token = await GetAuthToken(httpClient);
-//     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-//     string statusPath = $"{ServerAddress}{ExportDocumentStatus(exportId)}";
-//     var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
-//     HttpResponseMessage exportStatusResponse = await httpClient.GetAsync(statusPath);
-//     string statusAsString = await exportStatusResponse.Content.ReadAsStringAsync();
-//     var status = JsonConvert.DeserializeObject<TaskStatus>(statusAsString);
-
-//     return status;
-// }
