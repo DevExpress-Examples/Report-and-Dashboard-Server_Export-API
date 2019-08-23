@@ -7,10 +7,14 @@
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 
 
-      @Html.ActionLink("Download Report ", "DownloadReport", "Home", null, new { @class = "btn btn-default" })
+
+@Html.ActionLink("Export Report ", "DownloadReport", "Home", null, new { @class = "btn btn-default" })
+    @Html.ActionLink("Report Export Status ", "GetExportStatus", "Home", null, new { @class = "btn btn-default" })
+      
 
 
-      @Html.ActionLink("Download Dashboard", "DownloadDashboard", "Home", null, new { @class = "btn btn-default" })
+
+      @Html.ActionLink("Export Dashboard", "DownloadDashboard", "Home", null, new { @class = "btn btn-default" })
 
       @Html.ActionLink("Get Scheduled Job Result", "GetScheduledJobResult", "Home", null, new { @class = "btn btn-default" })
 

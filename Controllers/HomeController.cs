@@ -22,21 +22,19 @@ namespace exportApi.Controllers
         public ExportOptions ExportOptions { get; set; }
     }
 
-    public class ExportOptions
-    {
-        public string ExportFormat { get; set; }
-    }
-    public class AuthData
-    {
-        public string access_token { get; set; }
-    }
-
-
     public enum TaskStatus
     {
         Fault = 0,
         InProgress = 1,
         Complete = 2
+    }
+    
+    public class ExportOptions
+    {
+        public string ExportFormat { get; set; }
+    }
+    public class AuthData {
+        public string access_token { get; set; }
     }
 
     public class HomeController : Controller
@@ -54,33 +52,42 @@ namespace exportApi.Controllers
         const string DownloadDocumentPath = ServerAddress + "api/documents/8e8b59de58874221817479a7b1cc8080/export/download";
 
 
-        public async Task<FileStreamResult> DownloadReport()
+        public async Task<TaskStatus> GetExportStatus()
         {
-            // var sd = await exportServiceClient.GetRandomActivity();
-            //var httpClient = _httpClientFactory.CreateClient();
             var httpClient = new HttpClient();
+            string token = await GetAuthToken(httpClient);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             string statusPath = $"{ServerAddress}{ExportDocumentStatus}";
             var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
             HttpResponseMessage exportStatusResponse = await httpClient.GetAsync(statusPath);
             string statusAsString = await exportStatusResponse.Content.ReadAsStringAsync();
             var status = JsonConvert.DeserializeObject<TaskStatus>(statusAsString);
 
+            return status;
+        }
+
+        public async Task<FileStreamResult> DownloadReport()
+        {
+            // var sd = await exportServiceClient.GetRandomActivity();
+            //var httpClient = _httpClientFactory.CreateClient();
+            var httpClient = new HttpClient();
+            string token = await GetAuthToken(httpClient);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string statusPath = $"{ServerAddress}{ExportDocumentStatus}";
+            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+            HttpResponseMessage exportStatusResponse = await httpClient.GetAsync(statusPath);
+            string statusAsString = await exportStatusResponse.Content.ReadAsStringAsync();
+            var status = JsonConvert.DeserializeObject<TaskStatus>(statusAsString);
+
+
+
             HttpResponseMessage downloadResponse = await httpClient.GetAsync(DownloadDocumentPath);
             downloadResponse.EnsureSuccessStatusCode();
 
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
-
-            var fileName = "report.pdf";
-
-            Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = fileName, Inline = false }.ToString();
-            // System.Net.Mime.ContentDisposition cd = new System.Net.Mime.ContentDisposition
-            // {
-            //     FileName = "report.pdf",
-            //     Inline = false
-            // };
-
-            // Response.Headers.Add("Content-Disposition", cd.ToString());
-
+            Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = "report.pdf", Inline = false }.ToString();
             return File(stream, "application/pdf");
         }
 
@@ -88,42 +95,29 @@ namespace exportApi.Controllers
         public async Task<FileStreamResult> DownloadDashboard()
         {
             var httpClient = new HttpClient();
-            string userName = "admin";
-            string password = "admin";
-            var body = $"grant_type=password&username={userName}&password={password}";
-            var tokenResponse = await httpClient.PostAsync(ServerAddress + "oauth/token", new StringContent(body));
-            tokenResponse.EnsureSuccessStatusCode();
-            var authData = await tokenResponse.Content.ReadAsStringAsync();
-            var token = JsonConvert.DeserializeObject<AuthData>(authData);
+            string token = await GetAuthToken(httpClient);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
 
             ExportModel exportModel = new ExportModel { Id = 9, ExportOptions = new ExportOptions() { ExportFormat = "pdf" } };
             var jsonString = JsonConvert.SerializeObject(exportModel);
             var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
             Request.Headers.Add("Content-Type", "application/json");
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.access_token);
 
             var downloadDashboardPath = ServerAddress + "api/dashboards/export";
-
             HttpResponseMessage downloadResponse = await httpClient.PostAsync(downloadDashboardPath, content);
             downloadResponse.EnsureSuccessStatusCode();
-
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
 
-            System.Net.Mime.ContentDisposition cd = new System.Net.Mime.ContentDisposition
-            {
-                FileName = "dashboard.pdf",
-                Inline = false  // false = prompt the user for downloading;  true = browser to try to show the file inline
-            };
 
-            Response.Headers.Add("Content-Disposition", cd.ToString());
+            
+            Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = "dashboard.pdf", Inline = false }.ToString();
 
             return File(stream, "image/png");
         }
 
-
-        public async Task<FileStreamResult> GetScheduledJobResult()
+        static async Task<string> GetAuthToken(HttpClient httpClient)
         {
-            var httpClient = new HttpClient();
             string userName = "admin";
             string password = "admin";
             var body = $"grant_type=password&username={userName}&password={password}";
@@ -131,27 +125,26 @@ namespace exportApi.Controllers
             tokenResponse.EnsureSuccessStatusCode();
             var authData = await tokenResponse.Content.ReadAsStringAsync();
             var token = JsonConvert.DeserializeObject<AuthData>(authData);
+            return token.access_token;
+        }
+
+        public async Task<FileStreamResult> GetScheduledJobResult()
+        {
+            var httpClient = new HttpClient();
+            string token = await GetAuthToken(httpClient);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             ExportModel exportModel = new ExportModel { Id = 32, ExportOptions = new ExportOptions() { ExportFormat = "pdf" } };
             var jsonString = JsonConvert.SerializeObject(exportModel);
             var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
-            var sd = HttpContext.Request.Headers["Authorization"];
+
             Request.Headers.Add("Content-Type", "application/json");
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.access_token);
-
-
-
             var jobResultPath = ServerAddress + "api/jobs/results";
             HttpResponseMessage downloadResponse = await httpClient.PostAsync(jobResultPath, content);
             downloadResponse.EnsureSuccessStatusCode();
-
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
-            System.Net.Mime.ContentDisposition cd = new System.Net.Mime.ContentDisposition
-            {
-                FileName = "jobResult.pdf",
-                Inline = false  // false = prompt the user for downloading;  true = browser to try to show the file inline
-            };
-
-            Response.Headers.Add("Content-Disposition", cd.ToString());
+           
+            Response.Headers[HeaderNames.ContentDisposition] = new ContentDisposition { FileName = "jobResult.pdf", Inline = false }.ToString();
             return File(stream, "application/pdf");
         }
 
@@ -160,15 +153,10 @@ namespace exportApi.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        // [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        // public IActionResult Error()
+        // {
+        //     return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        // }
     }
 }
