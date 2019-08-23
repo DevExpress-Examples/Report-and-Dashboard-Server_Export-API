@@ -24,7 +24,7 @@ namespace exportApi
     {
         const string ExportDocumentStatus = "documents/95f71138eb424dc0a8c17da141496c93/export";
 
-        private readonly HttpClient _client;
+        readonly HttpClient _client;
 
         public ExportApiClient(HttpClient httpClient)
         {
@@ -52,6 +52,10 @@ namespace exportApi
         }
     }
 
+
+    public class StartExportModel {
+        public string exportId { get;set;}
+    }
 
     public class ExportModel
     {

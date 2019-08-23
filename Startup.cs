@@ -27,7 +27,7 @@ namespace exportApi
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
             services.AddHttpClient<IExportApiClient, ExportApiClient>()
-                             //.SetHandlerLifetime(TimeSpan.FromSeconds(30)) // NOTE: 
+                             //.SetHandlerLifetime(TimeSpan.FromSeconds(30))
                              ;
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
