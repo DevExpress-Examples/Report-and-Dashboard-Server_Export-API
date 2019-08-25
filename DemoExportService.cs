@@ -14,10 +14,12 @@ namespace ExportApiDemo {
         readonly HttpClient httpClient;
 
         const string ServerAddress = "http://localhost:8192/";
+        const string DemoAccountUserName = "admin";
+        const string DemoAccountPassword = "admin";
         const int DemoReportId = 8;
         const int DemoDashboardId = 9;
         const int DemoJobResultId = 32;
-        string ExportDocumentStatusPath(string exportId) => $"api/documents/{exportId}/export";
+        string DocumentExportStatusPath(string exportId) => $"api/documents/{exportId}/export";
         string DownloadDocumentPath(string exportId) => $"api/documents/{exportId}/export/download";
 
         public DemoExportService(HttpClient httpClient) {
@@ -28,6 +30,7 @@ namespace ExportApiDemo {
         public async Task<ExportedDocumentContent> ExportReport() {
             await Authorize(httpClient);
 
+//TODO: description for each export actions
             var documentParameters = new DocumentParameter[] { new DocumentParameter() { Name = "CustomerID", Value = "CACTU" } };
             HttpContent content = await GetExportResponseContent("api/reports/export", GetPdfExportModel(DemoReportId, documentParameters));
             var exportReportModel = JsonConvert.DeserializeObject<ReportExportInfo>(await content.ReadAsStringAsync());
@@ -35,7 +38,7 @@ namespace ExportApiDemo {
 
             while(status != TaskStatus.Complete) {
                 Thread.Sleep(500);
-                HttpResponseMessage exportStatusResponse = await httpClient.GetAsync($"{ExportDocumentStatusPath(exportReportModel.ExportId)}");
+                HttpResponseMessage exportStatusResponse = await httpClient.GetAsync($"{DocumentExportStatusPath(exportReportModel.ExportId)}");
                 status = JsonConvert.DeserializeObject<TaskStatus>(await exportStatusResponse.Content.ReadAsStringAsync());
             }
 
@@ -76,9 +79,7 @@ namespace ExportApiDemo {
         }
 
         static async Task Authorize(HttpClient httpClient) {
-            string demoAccountUserName = "admin";
-            string demoAccountPassword = "admin";
-            var authRequestBody = $"grant_type=password&username={demoAccountUserName}&password={demoAccountPassword}";
+            var authRequestBody = $"grant_type=password&username={DemoAccountUserName}&password={DemoAccountPassword}";
             var authResponse = await httpClient.PostAsync("oauth/token", new StringContent(authRequestBody));
             authResponse.EnsureSuccessStatusCode();
             var token = JsonConvert.DeserializeObject<Token>(await authResponse.Content.ReadAsStringAsync()).AuthToken;
