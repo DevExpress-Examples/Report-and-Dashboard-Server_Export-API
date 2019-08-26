@@ -13,9 +13,9 @@ namespace ExportApiDemo {
     public class DemoExportService : IExportService {
         readonly HttpClient httpClient;
 
-        const string ServerAddress = "http://localhost:8192/";
-        const string DemoAccountUserName = "admin";
-        const string DemoAccountPassword = "admin";
+        const string ServerAddress = "https://reportserver.devexpress.com/";
+        const string DemoAccountUserName = "Guest";
+        const string DemoAccountPassword = "";
         const int DemoReportId = 8;
         const int DemoDashboardId = 9;
         const int DemoJobResultId = 32;
