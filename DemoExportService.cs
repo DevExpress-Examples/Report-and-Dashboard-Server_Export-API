@@ -32,19 +32,19 @@ namespace ExportApiDemo {
 
             // Start report export task
             var documentParameters = new DocumentParameter[] { new DocumentParameter() { Name = "CustomerID", Value = "CACTU" } };
-            HttpContent content = await GetExportResponseContent("api/reports/export", GetPdfExportModel(DemoReportId, documentParameters));
+            HttpContent startExportResponse = await GetExportResponseContent("api/reports/export", GetPdfExportModel(DemoReportId, documentParameters));
 
             // Check report export task status
-            var exportReportModel = JsonConvert.DeserializeObject<ReportExportInfo>(await content.ReadAsStringAsync());
+            var reportExportInfo = JsonConvert.DeserializeObject<ReportExportInfo>(await startExportResponse.ReadAsStringAsync());
             TaskStatus status = TaskStatus.InProgress;
             while(status != TaskStatus.Complete) {
                 Thread.Sleep(500);
-                HttpResponseMessage exportStatusResponse = await httpClient.GetAsync($"{DocumentExportStatusPath(exportReportModel.ExportId)}");
+                HttpResponseMessage exportStatusResponse = await httpClient.GetAsync($"{DocumentExportStatusPath(reportExportInfo.ExportId)}");
                 status = JsonConvert.DeserializeObject<TaskStatus>(await exportStatusResponse.Content.ReadAsStringAsync());
             }
 
             // Download exported report 
-            HttpResponseMessage downloadResponse = await httpClient.GetAsync(DownloadDocumentPath(exportReportModel.ExportId));
+            HttpResponseMessage downloadResponse = await httpClient.GetAsync(DownloadDocumentPath(reportExportInfo.ExportId));
             downloadResponse.EnsureSuccessStatusCode();
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
             return new ExportedDocumentContent(stream, "application/pdf", "report.pdf");
