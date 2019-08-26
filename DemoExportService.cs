@@ -30,18 +30,20 @@ namespace ExportApiDemo {
         public async Task<ExportedDocumentContent> ExportReport() {
             await Authorize(httpClient);
 
-//TODO: description for each export actions
+            // Start report export task
             var documentParameters = new DocumentParameter[] { new DocumentParameter() { Name = "CustomerID", Value = "CACTU" } };
             HttpContent content = await GetExportResponseContent("api/reports/export", GetPdfExportModel(DemoReportId, documentParameters));
+
+            // Check report export task status
             var exportReportModel = JsonConvert.DeserializeObject<ReportExportInfo>(await content.ReadAsStringAsync());
             TaskStatus status = TaskStatus.InProgress;
-
             while(status != TaskStatus.Complete) {
                 Thread.Sleep(500);
                 HttpResponseMessage exportStatusResponse = await httpClient.GetAsync($"{DocumentExportStatusPath(exportReportModel.ExportId)}");
                 status = JsonConvert.DeserializeObject<TaskStatus>(await exportStatusResponse.Content.ReadAsStringAsync());
             }
 
+            // Download exported report 
             HttpResponseMessage downloadResponse = await httpClient.GetAsync(DownloadDocumentPath(exportReportModel.ExportId));
             downloadResponse.EnsureSuccessStatusCode();
             Stream stream = await downloadResponse.Content.ReadAsStreamAsync();
