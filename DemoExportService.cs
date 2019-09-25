@@ -19,8 +19,8 @@ namespace ExportApiDemo {
         const int DemoReportId = 8;
         const int DemoDashboardId = 9;
         const int DemoJobResultId = 32;
-        string DocumentExportStatusPath(string exportId) => $"api/documents/{exportId}/export";
-        string DownloadDocumentPath(string exportId) => $"api/documents/{exportId}/export/download";
+        string DocumentExportStatusPath(string exportId) => $"api/documents/export/status/{exportId}";
+        string DownloadDocumentPath(string exportId) => $"api/documents/export/result/{exportId}";
 
         public DemoExportService(HttpClient httpClient) {
             this.httpClient = httpClient;
@@ -32,7 +32,7 @@ namespace ExportApiDemo {
 
             // Start report export task
             var documentParameters = new DocumentParameter[] { new DocumentParameter() { Name = "CustomerID", Value = "CACTU" } };
-            HttpContent startExportResponse = await GetExportResponseContent("api/reports/export", GetPdfExportModel(DemoReportId, documentParameters));
+            HttpContent startExportResponse = await GetExportResponseContent($"api/documents/export/report/{DemoReportId}", GetPdfExportModel(documentParameters));
 
             // Check report export task status
             var reportExportInfo = JsonConvert.DeserializeObject<ReportExportInfo>(await startExportResponse.ReadAsStringAsync());
@@ -52,29 +52,28 @@ namespace ExportApiDemo {
 
         public async Task<ExportedDocumentContent> ExportDashboard() {
             await Authorize(httpClient);
-            return await GetExportedDocumentContent(GetPdfExportModel(DemoDashboardId), "api/dashboards/export", "dashboard.pdf");
+            return await GetExportedDocumentContent(GetPdfExportModel(), $"api/documents/export/dashboard/{DemoDashboardId}", "dashboard.pdf");
         }
 
         public async Task<ExportedDocumentContent> GetScheduledJobResult() {
             await Authorize(httpClient);
-            return await GetExportedDocumentContent(GetPdfExportModel(DemoJobResultId), "api/jobs/results", "jobResult.pdf");
+            return await GetExportedDocumentContent(new ExportOptions() { ExportFormat = "pdf" }, $"api/jobs/results/{DemoJobResultId}", "jobResult.pdf");
         }
 
-        async Task<ExportedDocumentContent> GetExportedDocumentContent(ExportRequestModel exportRequestModel, string exportUrl, string fileName) {
+        async Task<ExportedDocumentContent> GetExportedDocumentContent(object exportRequestModel, string exportUrl, string fileName) {
             var content = await GetExportResponseContent(exportUrl, exportRequestModel);
             return new ExportedDocumentContent(await content.ReadAsStreamAsync(), "application/pdf", fileName);
         }
 
-        async Task<HttpContent> GetExportResponseContent(string exportUrl, ExportRequestModel exportRequestModel) {
+        async Task<HttpContent> GetExportResponseContent(string exportUrl, object exportRequestModel) {
             var content = new StringContent(JsonConvert.SerializeObject(exportRequestModel), Encoding.UTF8, "application/json");
             HttpResponseMessage response = await httpClient.PostAsync(exportUrl, content);
             response.EnsureSuccessStatusCode();
             return response.Content;
         }
 
-        static ExportRequestModel GetPdfExportModel(int entityId, DocumentParameter[] parameters = null) {
+        static ExportRequestModel GetPdfExportModel(DocumentParameter[] parameters = null) {
             return new ExportRequestModel {
-                Id = entityId,
                 ExportOptions = new ExportOptions() { ExportFormat = "pdf" },
                 DocumentParameters = parameters
             };
