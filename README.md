@@ -14,4 +14,5 @@ Use the following command to build the example:
 Wait until the build is complete and open your browser on _http://localhost:5000/_  to see the result.
 
 **Documentation**
-  Lint to export api documentation here
+
+  Link to export api documentation here
