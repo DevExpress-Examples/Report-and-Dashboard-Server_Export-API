@@ -5,17 +5,15 @@ This example demonstrates how to use the [Report and Dashboard Server](https://d
 
 **Run the Example**
 
-* Open the console and navigate to the example's root folder.
+* Open the command line prompt and navigate to the example's root folder.
 
-* Run the command below to trust the HTTPS certificate for ASP.NET Core development:
+* Run the command below to trust the **https** certificate for ASP.NET Core development:
 
     ``dotnet dev-certs https --trust``
 
-* Use the following command to build and run the example: 
+* Type `dotnet run` to build and run the example application.
 
-    ``dotnet run``
-
-Wait until the build is complete and open your browser on _http://localhost:5000/_ or _https://localhost:5001/_ to see the result.
+After the application is built, open your browser and go to _http://localhost:5000/_ or _https://localhost:5001/_ to see the result.
 
 **Documentation**
 
