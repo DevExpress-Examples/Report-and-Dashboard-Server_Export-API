@@ -38,9 +38,11 @@ namespace ExportApiDemo {
             var reportExportInfo = JsonConvert.DeserializeObject<ReportExportInfo>(await startExportResponse.ReadAsStringAsync());
             TaskStatus status = TaskStatus.InProgress;
             while(status != TaskStatus.Complete) {
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
                 HttpResponseMessage exportStatusResponse = await httpClient.GetAsync($"{DocumentExportStatusPath(reportExportInfo.ExportId)}");
                 status = JsonConvert.DeserializeObject<TaskStatus>(await exportStatusResponse.Content.ReadAsStringAsync());
+                if(status == TaskStatus.Fault)
+                    throw new InvalidOperationException("task failed");
             }
 
             // Download exported report 

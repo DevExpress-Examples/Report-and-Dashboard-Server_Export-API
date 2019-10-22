@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ExportApiDemo.Models;
+using System;
 
 namespace ExportApiDemo.Controllers {
     public class HomeController : Controller {
@@ -10,8 +11,13 @@ namespace ExportApiDemo.Controllers {
             this.demoExportService = exportService;
         }
 
-        public async Task<FileStreamResult> ExportReport() {
-            ExportedDocumentContent content = await demoExportService.ExportReport();
+        public async Task<IActionResult> ExportReport() {
+            ExportedDocumentContent content = null;
+            try {
+                content = await demoExportService.ExportReport();
+            } catch(InvalidOperationException e) {
+                return BadRequest(e.Message);
+            }
             return File(content.Content, content.ContentType, content.FileName);
         }
 
