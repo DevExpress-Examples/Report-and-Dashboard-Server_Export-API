@@ -2,19 +2,14 @@
 
 This example demonstrates how to use the [Report and Dashboard Server](https://docs.devexpress.com/ReportServer/12432/index)'s export API.
 
-
 **Run the Example**
 
-* Open the command line prompt and navigate to the example's root folder.
+- Open the command line prompt and navigate to the example's root folder.
 
-* Run the command below to trust the **https** certificate for ASP.NET Core development:
+- Run the command below to trust the **https** certificate for ASP.NET Core development:
 
-    ``dotnet dev-certs https --trust``
+  `dotnet dev-certs https --trust`
 
-* Type `dotnet run` to build and run the example application.
+- Type `dotnet run` to build and run the example application.
 
 After the application is built, open your browser and go to _http://localhost:5000/_ or _https://localhost:5001/_ to see the result.
-
-**Documentation**
-
-  Link to export api documentation here
