@@ -16,9 +16,10 @@ namespace ExportApiDemo {
         const string ServerAddress = "https://reportserver.devexpress.com/";
         const string DemoAccountUserName = "Guest";
         const string DemoAccountPassword = "";
-        const int DemoReportId = 8;
-        const int DemoDashboardId = 9;
-        const int DemoJobResultId = 32;
+        const int DemoReportId = 1113;
+        const int DemoDashboardId = 2455;
+        const int DemoJobResultId = 21570;
+
         string DocumentExportStatusPath(string exportId) => $"api/documents/export/status/{exportId}";
         string DownloadDocumentPath(string exportId) => $"api/documents/export/result/{exportId}";
 
